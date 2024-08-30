@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Scrapper</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 5px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.1s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:active {
+            background-color: #004085;
+            transform: scale(0.97);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #stopSelectingButton {
+            background-color: #dc3545;
+        }
+
+        #stopSelectingButton:hover {
+            background-color: #c82333;
+        }
+
+        #stopSelectingButton:active {
+            background-color: #bd2130;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 500;
+            color: #444;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 15px 0;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        ul li {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            padding: 12px 20px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        ul li:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        #saveButton {
+            background-color: #28a745;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        #saveButton:hover {
+            background-color: #218838;
+        }
+
+        #saveButton:active {
+            background-color: #1e7e34;
+        }
+
+        #status {
+            font-size: 16px;
+            color: #d9534f;
+            margin-top: 20px;
+            font-weight: 500;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Scrapper</h1>
+    <div class="buttons">
+        <button id="startSelectingButton">Start Selecting</button>
+        <button id="stopSelectingButton">Stop Selecting</button>
+    </div>
+    <h2>Selected Elements</h2>
+    <ul id="elementsList"></ul>
+    <button id="saveButton">Save</button>
+    <p id="status"></p>
+    <script src="sidepanel.js"></script>
+</body>
+</html>
