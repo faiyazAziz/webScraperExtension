@@ -1,70 +1,119 @@
-
 let selectedElementArray = [];
-
-// console.log("sidepanel.js loaded",startSelecting);
+let entireDocument = "";
 document.addEventListener('DOMContentLoaded', function () {
+    const startSelectingParentButton = document.getElementById('startSelectingParentButton');
+    const startSelectingChildButton = document.getElementById('startSelectingChildButton');
+    const stopSelectingButton = document.getElementById('stopSelectingButton');
+    const saveButton = document.getElementById('saveButton');
+    const statusMessage = document.getElementById('status');
+    const selectedElementsList = document.getElementById('elementsList');
 
-    startSelecting = document.getElementById('startSelectingButton');
-    stopSelecting = document.getElementById('stopSelectingButton');
-    saveButton = document.getElementById('saveButton');
-    statusMessage = document.getElementById('status');
-    const selectedElements = document.getElementById('elementsList');
-
-
-    startSelecting.addEventListener('click', async () => {
+    startSelectingParentButton.addEventListener('click', async () => {
         const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-        const response = await chrome.tabs.sendMessage(tab.id, { action: "startSelecting" });
-        // do something with response here, not outside the function
-        console.log(response);
+        console.log("Parent selection mode enabled");
+
+        // Reinject the content script to ensure it's active
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['contentScript.js']
+        });
+        const res = await chrome.tabs.sendMessage(tab.id, { action: "startSelectingParent" });
+        console.log(res);
     });
 
-    stopSelecting.addEventListener('click', async () => {
+    startSelectingChildButton.addEventListener('click', async () => {
         const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-        const response = await chrome.tabs.sendMessage(tab.id, { action: "stopSelecting" });
-        // do something with response here, not outside the function
-        console.log(response);
+        const res = await chrome.tabs.sendMessage(tab.id, { action: "startSelectingChild" });
     });
 
-    saveButton.addEventListener('click',()=>{
-        let res = fetch('http://127.0.0.1:5000/message',{
+    stopSelectingButton.addEventListener('click', async () => {
+        const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+        const res = await chrome.tabs.sendMessage(tab.id, { action: "stopSelecting" });
+    });
+
+    saveButton.addEventListener('click', () => {
+        fetch('http://127.0.0.1:5000/message', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({'selectedElements':selectedElementArray})
+            body: JSON.stringify({ selectedElements: selectedElementArray, webPage: entireDocument })
         })
-        .then(response => response.json()) // Parse the JSON response
-        .then(data => {
-            console.log('Success:', data.response);
-            statusMessage.innerHTML = 'Success';
-            statusMessage.style.color = 'green';
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            statusMessage.innerHTML = 'Error';
-            statusMessage.style.color = 'red';
-        });
-        
-    })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data.response);
+                statusMessage.innerHTML = 'Success';
+                statusMessage.style.color = 'green';
+                setTimeout(() => {
+                    statusMessage.innerHTML = '';
+                }, 2000);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                statusMessage.innerHTML = 'Error';
+                statusMessage.style.color = 'red';
+                setTimeout(() => {
+                    statusMessage.innerHTML = '';
+                }, 2000);
+            });
 
+            
+    });
 
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        if (request.greeting === 'clicked') {
-            console.log("Received element HTML:", request.selectedElement);
-            const escapedHtml = escapeHtml(request.selectedElement);
-            const node = document.createElement("li");
-            node.innerHTML = escapedHtml;
-            selectedElementArray.push(request.selectedElement);
-            selectedElements.appendChild(node);
-            console.log(selectedElementArray);
+    chrome.runtime.onMessage.addListener((request) => {
+        if (request.message === 'selectedElements') {
+            selectedElementArray = request.selectedElements;
+            // renderSelectedElements(selectedElementArray, selectedElementsList);
+            renderSelectedElements( selectedElementArray, selectedElementsList);
             
         }
-    });
-    function escapeHtml(str) {
-        if (typeof str !== 'string') {
-            console.error("Expected a string but received:", str);
-            return '';  // or handle this case accordingly
+        if(request.message === 'webPage') {
+            entireDocument = request.entireDocument;
         }
+    });
+
+    function renderSelectedElements(elements, container) {
+        container.innerHTML = '';
+        elements.forEach((element, index) => {
+            const li = document.createElement('li');
+            
+            const parentNameInput = document.createElement('input');
+            parentNameInput.type = 'text';
+            parentNameInput.value = element.name;
+            parentNameInput.className = 'element-input';
+    
+            // Update the name in selectedElementArray when the input value changes
+            parentNameInput.addEventListener('input', (e) => {
+                elements[index].name = e.target.value;
+            });
+            
+            const childrenList = document.createElement('ul');
+            
+            element.childs.forEach((child, childIndex) => {
+                const childLi = document.createElement('li');
+                
+                const childNameInput = document.createElement('input');
+                childNameInput.type = 'text';
+                childNameInput.value = child.name;
+                childNameInput.className = 'element-input';
+    
+                // Update the child name in selectedElementArray when the input value changes
+                childNameInput.addEventListener('input', (e) => {
+                    elements[index].childs[childIndex].name = e.target.value;
+                });
+                
+                childLi.appendChild(childNameInput);
+                childrenList.appendChild(childLi);
+            });
+            
+            li.appendChild(parentNameInput);
+            li.appendChild(childrenList);
+            container.appendChild(li);
+        });
+    }
+    
+    
+    function escapeHtml(str) {
         return str.replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
